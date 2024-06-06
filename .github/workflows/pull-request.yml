@@ -6,7 +6,6 @@ on:
 
 
 jobs:
-  steps:
   build_module:
     runs-on: ubuntu-latest
     timeout-minutes: 10
