@@ -59,7 +59,7 @@ jobs:
         run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
 
       - name: Update Version
-        uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/actions/update-version.yml@master
+        uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/update-version.yml@master
         with:
           access-token: ${{ secrets.ACCESS_TOKEN }}
           branch: ${{ steps.determine_branch.outputs.branch }}
