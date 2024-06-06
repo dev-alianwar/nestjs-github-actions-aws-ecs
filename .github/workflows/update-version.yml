@@ -120,6 +120,7 @@ jobs:
         run: |
           git tag -l | xargs git tag -d
           git fetch --tags -f
+          git stash
           npm run incrementVersion
 
       - name: Increment Branch Version
@@ -129,6 +130,7 @@ jobs:
         run: |
           git tag -l | xargs git tag -d
           git fetch --tags -f
+          git stash
           npm run incrementBranchVersion
 
       - name: Push tags
