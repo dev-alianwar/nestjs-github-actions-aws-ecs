@@ -60,9 +60,11 @@ jobs:
 
       - name: Update Version
         uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/update-version.yml@master
+        secrets:
+          access_token: ${{ secrets.GH_PAT }}
         with:
-          access-token: ${{ secrets.ACCESS_TOKEN }}
-          branch: ${{ steps.determine_branch.outputs.branch }}
+          dry_run: false
+          is_master: true
 
 #   deploy:
 #     needs: [setup, build]
