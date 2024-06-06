@@ -11,19 +11,42 @@ env:
 
 jobs:
   setup:
-    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/setup.yml@master
-  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20'
+
   test:
     needs: setup
-    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/test.yml@master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
 
   build:
-    needs: setup
-    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/build.yml@master
-      
-  update-version:
+    needs: [setup, test]
     runs-on: ubuntu-latest
-      
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: npm run build
+
+  update-version:
+    needs: [setup, test, build]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -33,15 +56,20 @@ jobs:
         run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
 
       - name: Update Version
-        uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/update-version.yml
+        uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/actions/update-version@master
         with:
-          access-token: ${{ secrets.GA_PAT }}
+          access-token: ${{ secrets.ACCESS_TOKEN }}
           branch: ${{ steps.determine_branch.outputs.branch }}
 
-  # deploy:
-  #   needs: [setup, build]
-  #   secrets: inherit
-  #   uses: dev-alianwar/ci-cd-example/.github/workflows/deploy.yml@master
-  #   with:
-  #     is_master: true
-  #     new_package_version: ${{ needs.build_module.outputs.new_package_version }}
+#   deploy:
+#     needs: [setup, build]
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       - name: Deploy
+#         uses: dev-alianwar/ci-cd-example/.github/actions/deploy@master
+#         with:
+#           is_master: true
+#           new_package_version: ${{ needs.build_module.outputs.new_package_version }}

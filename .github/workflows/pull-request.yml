@@ -1,34 +1,49 @@
-name: Pull request
-
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
-
 jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+  build:
+    needs: [setup, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: npm run build
+
   build_module:
+    needs: [setup, test, build]
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 3
-          ref: ${{ github.event.release.target_commitish }}
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Setup git bot user
-        run: |
-          git config --local user.email "dev.alianwar@gmail.com"
-          git config --local user.name "GitHub Action"
-
-      - name: Check if working directory is clean
-        run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            echo "Working directory is not clean. Stashing changes..."
-            git stash push --keep-index --quiet
-            STASHED_CHANGES=true
-          else
-            echo "Working directory is clean."
-            STASHED_CHANGES=false
-          fi
+      - name: Build Module
+        run: npm build
