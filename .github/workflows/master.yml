@@ -12,33 +12,31 @@ env:
 jobs:
   setup:
     uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/setup.yml@master
+  
+  test:
+    needs: setup
+    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/test.yml@master
 
   build:
     needs: setup
     uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/build.yml@master
-    secrets:
-      access_token: ${{ secrets.ACCESS_TOKEN }}
-    with:
-      dry_run: false
-      is_master: true
       
-
-  # update-version:
-  #   runs-on: ubuntu-latest
+  update-version:
+    runs-on: ubuntu-latest
       
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-  #     - name: Determine branch type
-  #       id: determine_branch
-  #       run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+      - name: Determine branch type
+        id: determine_branch
+        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
 
-  #     - name: Update Version
-  #       uses: ./.github/workflows/update-version.yml
-  #       with:
-  #         access-token: ${{ secrets.GA_PAT }}
-  #         branch: ${{ steps.determine_branch.outputs.branch }}
+      - name: Update Version
+        uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/update-version.yml
+        with:
+          access-token: ${{ secrets.GA_PAT }}
+          branch: ${{ steps.determine_branch.outputs.branch }}
 
   # deploy:
   #   needs: [setup, build]
