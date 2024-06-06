@@ -18,7 +18,7 @@ jobs:
     uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/test.yml@master
 
   build:
-    needs: setup
+    needs: [setup, test]
     uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/build.yml@master
       
   update-version:
@@ -35,7 +35,7 @@ jobs:
       - name: Update Version
         uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/update-version.yml
         with:
-          access-token: ${{ secrets.GA_PAT }}
+          access-token: ${{ secrets.ACCESS_TOKEN }}
           branch: ${{ steps.determine_branch.outputs.branch }}
 
   # deploy:

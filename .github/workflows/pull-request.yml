@@ -9,26 +9,15 @@ jobs:
   build_module:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 3
-          ref: ${{ github.event.release.target_commitish }}
 
-      - name: Setup git bot user
-        run: |
-          git config --local user.email "dev.alianwar@gmail.com"
-          git config --local user.name "GitHub Action"
+  setup:
+    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/setup.yml@master
+  
+  test:
+    needs: setup
+    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/test.yml@master
 
-      - name: Check if working directory is clean
-        run: |
-          if [[ -n $(git status --porcelain) ]]; then
-            echo "Working directory is not clean. Stashing changes..."
-            git stash push --keep-index --quiet
-            STASHED_CHANGES=true
-          else
-            echo "Working directory is clean."
-            STASHED_CHANGES=false
-          fi
+  build:
+    needs: [setup, test]
+    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/build.yml@master
+      
