@@ -1,23 +1,46 @@
-name: Pull request
-
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened]
 
-
 jobs:
-  build_module:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
   setup:
-    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/setup.yml@master
-  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
   test:
     needs: setup
-    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/test.yml@master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run tests
+        run: npm test
 
   build:
     needs: [setup, test]
-    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/build.yml@master
-      
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: npm run build
+
+  build_module:
+    needs: [setup, test, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build Module
+        run: npm build
