@@ -1,0 +1,94 @@
+name: Update Version
+
+on:
+  workflow_call:
+    secrets:
+      access-token:
+        description: 'A token passed from the caller workflow'
+        required: false
+    inputs:
+      branch:
+        required: true
+        type: string
+        description: 'Updating version in package.json'
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20'
+
+    - name: Get the latest tag
+      id: get_latest_tag
+      run: |
+        LATEST_TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "0.0.0")
+        echo "::set-output name=latest_tag::$LATEST_TAG"
+
+    - name: Determine new version
+      id: determine_version
+      run: |
+        VERSION=${{ steps.get_latest_tag.outputs.latest_tag }}
+        IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+        MAJOR=${VERSION_PARTS[0]}
+        MINOR=${VERSION_PARTS[1]}
+        PATCH=${VERSION_PARTS[2]}
+        BRANCH_NAME=${{ inputs.branch }}
+
+        if [[ $BRANCH_NAME == "master" ]]; then
+          # Direct push to master or hotfix merge
+          PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        elif [[ $BRANCH_NAME == hotfix/* ]]; then
+          # hotfix merge
+          PATCH=$((PATCH + 1))
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        elif [[ $BRANCH_NAME == fix/* || $BRANCH_NAME == feature/* || $BRANCH_NAME == release/* ]]; then
+          # fix, feature, or release merge
+          MAJOR=$((MAJOR + 1))
+          NEW_VERSION="$MAJOR.0.0"
+        else
+          echo "No version increment needed."
+          exit 0
+        fi
+
+        echo "New version: $NEW_VERSION"
+        echo "::set-output name=new_version::$NEW_VERSION"
+
+    - name: Update package.json with new version
+      run: |
+        NEW_VERSION=${{ steps.determine_version.outputs.new_version }}
+        if [ -n "$NEW_VERSION" ]; then
+          npm version $NEW_VERSION --no-git-tag-version
+        fi
+
+    - name: Commit updated package.json
+      run: |
+        NEW_VERSION=${{ steps.determine_version.outputs.new_version }}
+        if [ -n "$NEW_VERSION" ]; then
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add package.json
+          git commit -m "Bump version to $NEW_VERSION"
+        fi
+
+    - name: Push changes
+      run: |
+        NEW_VERSION=${{ steps.determine_version.outputs.new_version }}
+        if [ -n "$NEW_VERSION" ]; then
+          git push https://${secrets.access-token}@github.com/${{ github.repository }} HEAD:master
+        fi
+
+    - name: Create new tag
+      run: |
+        NEW_VERSION=${{ steps.determine_version.outputs.new_version }}
+        if [ -n "$NEW_VERSION" ]; then
+          git tag $NEW_VERSION
+          git push https://${secrets.access-token}@github.com/${{ github.repository }} $NEW_VERSION
+        fi

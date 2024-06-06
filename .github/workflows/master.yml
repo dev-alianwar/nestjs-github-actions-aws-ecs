@@ -1,0 +1,49 @@
+name: Test, Update Version, Build and Deploy
+
+on:
+  push:
+    branches:
+      - "master"
+
+env:
+  REPO_OWNER: dev-alianwar
+  REPO_NAME: nestjs-github-actions-aws-ecs
+
+jobs:
+  setup:
+    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/setup.yml@master
+
+  build:
+    needs: setup
+    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/build.yml@master
+    secrets:
+      access_token: ${{ secrets.ACCESS_TOKEN }}
+    with:
+      dry_run: false
+      is_master: true
+      
+
+  # update-version:
+  #   runs-on: ubuntu-latest
+      
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
+
+  #     - name: Determine branch type
+  #       id: determine_branch
+  #       run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+
+  #     - name: Update Version
+  #       uses: ./.github/workflows/update-version.yml
+  #       with:
+  #         access-token: ${{ secrets.GA_PAT }}
+  #         branch: ${{ steps.determine_branch.outputs.branch }}
+
+  # deploy:
+  #   needs: [setup, build]
+  #   secrets: inherit
+  #   uses: dev-alianwar/ci-cd-example/.github/workflows/deploy.yml@master
+  #   with:
+  #     is_master: true
+  #     new_package_version: ${{ needs.build_module.outputs.new_package_version }}
