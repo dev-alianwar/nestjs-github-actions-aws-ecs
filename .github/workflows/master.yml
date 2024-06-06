@@ -49,22 +49,12 @@ jobs:
 
   update-version:
     needs: [setup, test, build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Determine branch type
-        id: determine_branch
-        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
-
-      - name: Update Version
-        uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/update-version.yml@master
-        secrets:
-          access_token: ${{ secrets.GH_PAT }}
-        with:
-          dry_run: false
-          is_master: true
+    uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/update-version.yml@master
+    secrets:
+      access_token: ${{ secrets.GH_PAT }}
+    with:
+      dry_run: false
+      is_master: true
 
 #   deploy:
 #     needs: [setup, build]
