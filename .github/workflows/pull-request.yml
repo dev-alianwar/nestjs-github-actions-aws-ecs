@@ -6,18 +6,22 @@ on:
 
 
 jobs:
+  steps:
   build_module:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
   setup:
+    name: Setup
     uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/setup.yml@master
   
   test:
     needs: setup
+    name: Test
     uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/test.yml@master
 
   build:
     needs: [setup, test]
+    name: Build
     uses: dev-alianwar/nestjs-github-actions-aws-ecs/.github/workflows/build.yml@master
       
