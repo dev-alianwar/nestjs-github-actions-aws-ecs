@@ -1,4 +1,4 @@
-## Nestjs with AWS S3
+## Nestjs with AWS ECS
 Nest.js application with REST APIs to upload and stream file from S3
 
 ## Github Action Tagging and Branch release 
