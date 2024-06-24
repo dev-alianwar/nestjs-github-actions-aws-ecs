@@ -1,4 +1,3 @@
-// post.controller.ts
 import {
   Controller,
   Get,
