@@ -5,6 +5,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { v4 as uuidV4 } from 'uuid';
 import { S3Service } from '../services/s3.service';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Injectable()
 export class PostService {
@@ -36,8 +37,26 @@ export class PostService {
     return res;
   }
 
-  async getPosts() {
-    return this.prisma.post.findMany();
+  async getPosts(paginationDto: PaginationDto) {
+    const { page: currentPage = 1, limit: size = 10 } = paginationDto;
+
+    const skip = (currentPage - 1) * size;
+
+    const [items, totalCount] = await this.prisma.$transaction([
+      this.prisma.post.findMany({
+        skip,
+        take: currentPage,
+      }),
+      this.prisma.post.count(),
+    ]);
+
+    return {
+      data: items,
+      totalCount,
+      pageNo: currentPage,
+      pageLimit: size,
+      totalPages: Math.ceil(totalCount / size),
+    };
   }
 
   async getPostById(postId: number) {
