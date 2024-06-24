@@ -9,10 +9,12 @@ import {
   UploadedFile,
   ParseFilePipe,
   MaxFileSizeValidator,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginationDto } from './dto/pagination.dto';
 
 @Controller('posts')
 export class PostController {
@@ -32,8 +34,8 @@ export class PostController {
   }
 
   @Get()
-  async getPosts() {
-    return this.postService.getPosts();
+  async findAll(@Query() paginationDto: PaginationDto) {
+    return this.postService.getPosts(paginationDto);
   }
 
   @Get(':id')
